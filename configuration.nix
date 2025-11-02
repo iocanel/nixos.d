@@ -317,6 +317,7 @@
      docker-buildx
      docker-machine-kvm2
      docker-compose
+     nvidia-container-toolkit
      #
      # Drivers
      #
@@ -518,6 +519,11 @@
       };
     };
     superdrive = {
+      enable = true;
+    };
+    # NVIDIA GPU support
+    nvidia-container-toolkit.enable = true;
+    opengl = {
       enable = true;
     };
   };
