@@ -68,6 +68,9 @@
   boot.loader.grub.useOSProber = true;
   boot.loader.systemd-boot.enable = true;
 
+  # Use kernel 6.17
+  boot.kernelPackages = pkgs.linuxPackages_6_17;
+
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
   boot.kernelModules = [ "uinput" ];
 
