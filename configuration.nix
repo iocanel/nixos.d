@@ -296,6 +296,7 @@
      pinentry-curses
      pinentry-qt
      stow
+     linux-firmware     # Additional firmware support
      # Android
      android-tools
      android-udev-rules
@@ -542,6 +543,14 @@
   virtualisation.docker.daemon.settings.ipv6 = false;
   virtualisation.oci-containers.backend = "docker";
 
+    # Podman as alternative container runtime with better NVIDIA support
+    podman = {
+      enable = true;
+      # Enable Docker compatibility (allows using 'docker' command with Podman)
+      dockerCompat = false; # Keep false to avoid conflicts with Docker
+      # Default network settings
+      defaultNetwork.settings.dns_enabled = true;
+    };
 
   # Open ports in the firewall.
   networking = {
