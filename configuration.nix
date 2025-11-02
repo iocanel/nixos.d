@@ -138,6 +138,8 @@
     # Configure keymap in X11
     xserver = {
       enable = false;
+      # NVIDIA video drivers for GPU support
+      videoDrivers = [ "nvidia" ];
       desktopManager = {
         xterm.enable = true;
       };
