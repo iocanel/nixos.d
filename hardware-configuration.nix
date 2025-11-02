@@ -125,6 +125,10 @@
       # Use open source kernel modules (recommended for newer cards)
       open = false;  # Set to true if you want to try open source drivers
     };
+
+    nvidia-container-toolkit = {
+      enable = true;
+    };
     
     # AMD Ryzen AI 7 PRO 350 (Zen 5) optimizations
     cpu.amd = {
