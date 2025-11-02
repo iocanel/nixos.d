@@ -16,6 +16,12 @@
     "hid_generic"       # Generic HID support
     "hid_multitouch"    # Multitouch HID support
     "usb_storage"       # USB storage support
+    # AMD ACP audio modules
+    "snd_pci_acp6x"     # ACP6x PCI driver for Rembrandt
+    "snd_rpl_pci_acp6x" # Raptor Lake ACP6x variant
+    "snd_soc_acp6x_mach" # ACP6x machine driver
+    "snd_acp_config"    # ACP configuration
+    "snd_hda_intel"     # HDA Intel driver
   ];
   boot.extraModulePackages = [ ];
   
@@ -35,6 +41,14 @@
     "usbhid.mousepoll=1"         # Increase mouse polling rate
     "usbcore.old_scheme_first=1" # Try old USB enumeration first
     "amd_iommu=on"               # Ensures PCIe hotplug/IOMMU plays nicely with TB tunnels
+
+    # Audio fixes for AMD Rembrandt internal speakers
+    "snd-hda-intel.dmic_detect=0"        # Disable problematic DMIC detection
+    "snd-hda-intel.model=auto"           # Auto-detect codec model
+    "snd_pci_acp6x.acp_audio_mode=1"     # Enable ACP6x for internal speakers
+    "acpi_enforce_resources=lax"         # Allow ACP resource access
+    "pci=realloc"                        # Force PCI resource reallocation
+    "acp_audio_enable=1"                 # Force enable ACP audio
   ];
 
   fileSystems."/" =
@@ -96,7 +110,6 @@
   networking.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp34s0u2u1u2.useDHCP = lib.mkDefault true;
   # networking.interfaces.wlp9s0.useDHCP = lib.mkDefault true;
-
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware = {
     # NVIDIA GPU configuration for hybrid setup
