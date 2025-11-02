@@ -318,6 +318,8 @@
      docker-machine-kvm2
      docker-compose
      nvidia-container-toolkit
+     podman
+     podman-compose
      #
      # Drivers
      #
