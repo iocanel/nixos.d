@@ -325,7 +325,7 @@
      #
      # AI
      #
-     ollama
+     unstable.ollama
      #
      # Clipboard Management
      #
