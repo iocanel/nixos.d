@@ -401,6 +401,7 @@
      # Utils
      #Devices
      sg3_utils
+     lm_sensors
      #
      # Graphics
      #
