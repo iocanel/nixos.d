@@ -516,7 +516,7 @@
     };
     
     ydotool = {
-      enable = true;
+      enable = false;
       group = "input";
     };
   };
