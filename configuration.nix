@@ -312,7 +312,6 @@
      stdenv # nixos build essentials
      home-manager
      bash
-     zsh
      fish
      direnv
      pass
@@ -497,15 +496,6 @@
       };
     };
 
-    zsh = {
-      enable = true;
-      enableCompletion = true;
-      syntaxHighlighting.enable = true;
-      shellAliases = {
-        vi = "nvim";
-        update = "sudo nixos-rebuild switch";
-      };
-    };
 
     fish = {
       enable = true;
