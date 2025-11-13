@@ -8,6 +8,7 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
       ./dell-16-pro-max.nix
       ./filesystems.nix
+      ./crash-debugging.nix  # TEMPORARY: Remove once freeze issue is resolved
     ];
 
   boot.initrd.availableKernelModules = [ "ahci" "xhci_pci" "thunderbolt" "nvme" "usb_storage" "usbhid" "sd_mod" "sr_mod" "rtsx_pci_sdmmc" "r8152" "usbnet" "hid_generic" ];
