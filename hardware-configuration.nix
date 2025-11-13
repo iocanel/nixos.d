@@ -6,102 +6,16 @@
 {
   imports =
     [ (modulesPath + "/installer/scan/not-detected.nix")
+      ./dell-16-pro-max.nix
+      ./filesystems.nix
     ];
 
   boot.initrd.availableKernelModules = [ "ahci" "xhci_pci" "thunderbolt" "nvme" "usb_storage" "usbhid" "sd_mod" "sr_mod" "rtsx_pci_sdmmc" "r8152" "usbnet" "hid_generic" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ 
-    "kvm-amd"           # AMD virtualization
-    "usbhid"            # USB HID support
-    "hid_generic"       # Generic HID support
-    "hid_multitouch"    # Multitouch HID support
-    "usb_storage"       # USB storage support
-    # AMD ACP audio modules
-    "snd_pci_acp6x"     # ACP6x PCI driver for Rembrandt
-    "snd_rpl_pci_acp6x" # Raptor Lake ACP6x variant
-    "snd_soc_acp6x_mach" # ACP6x machine driver
-    "snd_acp_config"    # ACP configuration
-    "snd_hda_intel"     # HDA Intel driver
-  ];
+  boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
   
-  # CPU-specific optimizations for AMD Ryzen AI 7 PRO 350 (Zen 5)
-  boot.kernelParams = [
-    # Enable AMD P-State for better power management
-    "amd_pstate=active"
-    # Optimize for modern Zen 5 architecture
-    "processor.max_cstate=1"  # Better latency for performance workloads
-    # Enable enhanced security features
-    "spec_store_bypass_disable=on"
-    "l1tf=full,force"
-    
-    # USB optimizations for docks/hubs
-    "usbcore.autosuspend=-1"     # Disable USB autosuspend globally
-    "usb-storage.delay_use=0"    # Reduce USB storage detection delay
-    "usbhid.mousepoll=1"         # Increase mouse polling rate
-    "usbcore.old_scheme_first=1" # Try old USB enumeration first
-    "amd_iommu=on"               # Ensures PCIe hotplug/IOMMU plays nicely with TB tunnels
 
-    # Audio fixes for AMD Rembrandt internal speakers
-    "snd-hda-intel.dmic_detect=0"        # Disable problematic DMIC detection
-    "snd-hda-intel.model=auto"           # Auto-detect codec model
-    "snd_pci_acp6x.acp_audio_mode=1"     # Enable ACP6x for internal speakers
-    "acpi_enforce_resources=lax"         # Allow ACP resource access
-    "pci=realloc"                        # Force PCI resource reallocation
-    "acp_audio_enable=1"                 # Force enable ACP audio
-  ];
-
-  fileSystems."/" =
-  { 
-      device = "/dev/disk/by-uuid/8320826a-0f92-4294-a25e-a1cde9448769";
-      fsType = "ext4";
-  };
-
-  fileSystems."/home" =
-  { 
-      device = "/dev/disk/by-uuid/4882f657-3753-4e28-bd2e-25d259cdff4f";
-      fsType = "ext4";
-  };
-
-
-  fileSystems."/boot" =
-  { 
-      device = "/dev/disk/by-uuid/CC3E-D41A";
-      fsType = "vfat";
-      options = [ "fmask=0022" "dmask=0022" ];
-  };
-  
-  fileSystems."/mnt/usb" =
-  { 
-      device = "/dev/sda1";
-      fsType = "vfat";
-      options = [ "nofail" "user" "rw" "uid=1000" "gid=100" "umask=0002" ];
-  };
-
-#  fileSystems."/mnt/downloads" = 
-#  {
-#    device = "192.168.1.250:/volume2/downloads";
-#    fsType = "nfs";
-#    options = [ "nofail" "bg" ];
-#  };
-
-  fileSystems."/mnt/bjj" = 
-  {
-    device = "192.168.1.250:/volume2/bjj";
-    fsType = "nfs";
-    options = [ "nofail" "bg" ];
-  };
-
-#  fileSystems."/mnt/media" = 
-#  {
-#    device = "192.168.1.250:/volume2/media";
-#    fsType = "nfs";
-#    options = [ "nofail" "bg" ];
-#  };
-
-
-
-  swapDevices = [ ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
@@ -110,108 +24,6 @@
   networking.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp34s0u2u1u2.useDHCP = lib.mkDefault true;
   # networking.interfaces.wlp9s0.useDHCP = lib.mkDefault true;
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware = {
-    # NVIDIA GPU configuration for hybrid setup
-    nvidia = {
-      package = config.boot.kernelPackages.nvidiaPackages.stable;
-      
-      # Enable PRIME for hybrid graphics (NVIDIA + AMD)
-      prime = {
-        # Bus IDs from lspci output
-        nvidiaBusId = "PCI:198:0:0";  # c6:00.0 in hex = 198:0:0 in decimal
-        amdgpuBusId = "PCI:199:0:0";  # c7:00.0 in hex = 199:0:0 in decimal
-        
-        # Enable offload mode for better battery life
-        offload = {
-          enable = true;
-          enableOffloadCmd = true;
-        };
-      };
-      
-      # Power management for laptops
-      powerManagement = {
-        enable = true;
-        finegrained = true;
-      };
-      
-      # Use open source kernel modules (recommended for newer cards)
-      open = false;  # Set to true if you want to try open source drivers
-    };
 
-    nvidia-container-toolkit = {
-      enable = true;
-    };
-    
-    # AMD Ryzen AI 7 PRO 350 (Zen 5) optimizations
-    cpu.amd = {
-      updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-    };
-    
-    # Enable advanced CPU features
-    enableRedistributableFirmware = true;
-    
-    # AMD GPU driver support
-    amdgpu.amdvlk.enable = true;
-    
-    # Graphics support (replaces opengl in NixOS 24.05+)
-    graphics = {
-      enable = true;
-      enable32Bit = true;  # For 32-bit applications
-    };
-    
-    bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-    };
-    
-    # Power management optimizations for laptop
-    acpilight.enable = true;  # Better backlight control 
-  };
-  
-  # Enable NVIDIA video drivers for X11
-  services.xserver.videoDrivers = [ "nvidia" ];
-  
-  # USB and input device services
-  services = {
-    hardware = {
-      bolt = {
-        enable = true;  # Thunderbolt device management
-      };
-    };
-    # Enable udev for proper device detection
-    udev = {
-      extraRules = ''
-        # USB device rules for better dock/hub support
-        SUBSYSTEM=="usb", ATTR{power/autosuspend}="-1"
-        SUBSYSTEM=="usb", TEST=="power/control", ATTR{power/control}="on"
-        
-        # Input device rules
-        SUBSYSTEM=="input", GROUP="input", MODE="0664"
-        SUBSYSTEM=="hidraw", GROUP="input", MODE="0664"
-        
-        # USB HID device rules
-        KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0664", GROUP="input"
-        
-        # Mouse and keyboard specific rules
-        SUBSYSTEM=="input", KERNEL=="mouse*", GROUP="input", MODE="0664"
-        SUBSYSTEM=="input", KERNEL=="event*", GROUP="input", MODE="0664"
-      '';
-      packages = [ pkgs.usbutils ];
-    };
-  };
-  
-  # Power management settings
-  powerManagement = {
-    # Disable USB autosuspend to prevent disconnects
-    powerUpCommands = ''
-      echo -1 > /sys/module/usbcore/parameters/autosuspend
-      for usb in /sys/bus/usb/devices/*/power/autosuspend; do
-        [ -w "$usb" ] && echo -1 > "$usb"
-      done
-      for usb in /sys/bus/usb/devices/*/power/control; do
-        [ -w "$usb" ] && echo on > "$usb"
-      done
-    '';
-  };
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

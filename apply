@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# NixOS Configuration Apply Script
+# Copies configuration from ~/.nixos to /etc/nixos and rebuilds
+
+set -e
+
+echo "Copying configuration from ~/.nixos to /etc/nixos..."
+sudo rsync -av --delete --exclude='.git/' --exclude='**/.git/' /home/iocanel/.nixos/ /etc/nixos/
+
+echo "Running nixos-rebuild switch..."
+sudo nixos-rebuild switch
+
+echo "Configuration applied successfully!"

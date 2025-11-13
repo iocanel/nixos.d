@@ -55,8 +55,8 @@
   imports =
     [
       ./hardware-configuration.nix
-      ./modules/deluge.nix
       ./modules/superdrive.nix
+      ./private/index.nix
       <home-manager/nixos>
     ];
 
@@ -67,42 +67,21 @@
   boot.loader.grub.efiSupport = true;
   boot.loader.grub.useOSProber = true;
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 5;
+  boot.initrd.luks.devices = {
+    "cryptroot" = {      
+      device = "/dev/disk/by-uuid/2205cc86-d099-4cc7-8899-143f4ea6a222";
+      preLVM = true;
+    };
+  };
 
   # Use kernel 6.17
   boot.kernelPackages = pkgs.linuxPackages_6_17;
 
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-  boot.kernelModules = [
-    "uinput"
-    # SoundWire modules for Dell Pro Max 16 (MC16255) with Realtek ALC3329/ALC1708
-    "snd_soc_rt722_sdca"    # Realtek RT722 codec (ALC3329)
-    "snd_soc_rt1320_sdw"    # Realtek RT1320 amplifier (ALC1708)
-  ];
-
-  # Force SOF (Sound Open Firmware) for SoundWire audio
-  # This enables the Realtek ALC3329/ALC1708 SoundWire codec and amplifier
-  boot.extraModprobeConfig = ''
-    # Force SOF driver for SoundWire audio instead of legacy ACP drivers
-    options snd-intel-dspcfg dsp_driver=3
-
-    # Blacklist legacy ACP drivers to ensure SOF driver binds
-    blacklist snd_acp_pci
-    blacklist snd_pci_acp6x
-    blacklist snd_pci_acp5x
-    blacklist snd_pci_acp3x
-    blacklist snd_rn_pci_acp3x
-    blacklist snd_rpl_pci_acp6x
-
-    # Enable SoundWire codec auto-probing for Dell Pro Max 16
-    options snd_soc_rt722_sdca probe_with_acpi=1
-    options snd_soc_rt1320_sdw probe_with_acpi=1
-
-    # Ensure SoundWire subsystem loads early
-    options soundwire_bus probe_timeout=5000
-  '';
 
   networking = {
-    hostName = "nixos";
+    hostName = "canelio";
     hosts = {
       "my-app.local" = [ "127.0.0.1" ];
     };
@@ -165,8 +144,6 @@
     # Configure keymap in X11
     xserver = {
       enable = false;
-      # NVIDIA video drivers for GPU support
-      videoDrivers = [ "nvidia" ];
       desktopManager = {
         xterm.enable = true;
       };
@@ -215,6 +192,10 @@
       #  load-module module-alsa-source device=hw:0,0
       #  load-module module-combine-sink
     };
+
+    resolved = {
+      enable = false;
+    };
     
     udisks2 = {
       enable = true;
@@ -240,14 +221,22 @@
       nssmdns4 = true;
       openFirewall = true;
     };
-    
-    # Enable upower for better power management with docks
-    upower = {
+
+    ollama = {
       enable = true;
+      acceleration = "cuda";  # Use CUDA acceleration for your NVIDIA GPU
+      environmentVariables = {
+        OLLAMA_HOST = "127.0.0.1:11434";
+      };
+      openFirewall = false;  # Keep it local for security
     };
+    
   };
     
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Enable FUSE for user mounts
+  programs.fuse.userAllowOther = true;
+
+  # Define a user account. Don't forget to set a password with 'passwd'.
   users = {
     defaultUserShell = pkgs.fish;
     groups = {
@@ -268,7 +257,7 @@
       iocanel = {
         isNormalUser = true;
         description = "Ioannis Canellos";
-        extraGroups = [ "root" "wheel" "users" "iocanel" "audio" "video" "adbusers" "docker" "www-data" "networkmanager" "disk" "transmission" "deluge" "input" ];
+        extraGroups = [ "root" "wheel" "users" "iocanel" "audio" "video" "adbusers" "docker" "www-data" "networkmanager" "disk" "transmission" "deluge" "input" "fuse" "kvm" "libvirt" "podman" ];
         linger = true;
       };
     };
@@ -305,6 +294,13 @@
   # Experimental features
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # Garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
+
   # Overlays
    nixpkgs.overlays = [
     (import /etc/nixos/overlays/custom-java-overlay.nix)
@@ -323,12 +319,6 @@
      pinentry-curses
      pinentry-qt
      stow
-     # Audio
-     alsa-utils
-     pavucontrol
-     # SOF firmware for SoundWire audio (Dell Pro Max 16 with Realtek ALC3329/ALC1708)
-     sof-firmware       # Sound Open Firmware for SoundWire codecs
-     alsa-ucm-conf      # Required for modern audio cards per Arch forums
      linux-firmware     # Additional firmware support
      # Android
      android-tools
@@ -351,7 +341,6 @@
      docker-buildx
      docker-machine-kvm2
      docker-compose
-     nvidia-container-toolkit
      podman
      podman-compose
      #
@@ -545,21 +534,7 @@
   # Hardware
   #
   hardware = {
-    bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-      settings = {
-        General = {
-          Enable = "Source,Sink,Media,Socket";
-        };
-      };
-    };
     superdrive = {
-      enable = true;
-    };
-    # NVIDIA GPU support
-    nvidia-container-toolkit.enable = true;
-    opengl = {
       enable = true;
     };
   };
@@ -580,22 +555,13 @@
           ipv6 = false;
           # Use the modern "runtimes" configuration format (not "runtime")
           # The old "runtime" section is deprecated and conflicts with newer Docker versions
-          # Create a custom wrapper to fix PATH issues with nvidia-container-cli
-          runtimes = {
-            nvidia = {
-              path = "${pkgs.writeShellScript "nvidia-container-runtime-wrapper" ''
-                export PATH="${pkgs.nvidia-container-toolkit}/bin:${pkgs.libnvidia-container}/bin:$PATH"
-                exec ${pkgs.nvidia-container-toolkit.tools}/bin/nvidia-container-runtime "$@"
-              ''}";
-            };
-          };
           # Enable CDI (Container Device Interface) for modern GPU support
           features.cdi = true;
         };
       };
     };
     
-    # Podman as alternative container runtime with better NVIDIA support
+    # Podman as alternative container runtime with better GPU support
     podman = {
       enable = true;
       # Enable Docker compatibility (allows using 'docker' command with Podman)
@@ -632,9 +598,19 @@
     };
   };
 
+  # Allow non-privileged users to use dmesg
+  boot.kernel.sysctl."kernel.dmesg_restrict" = 0;
+  # Swap configuration for memory pressure relief
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 8192; # 8GB swap file
+    }
+  ];
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # on your system were taken. It's perfectly fine and recommended to leave
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
@@ -707,9 +683,6 @@
   };
 
   security = {
-    # Enable RTKit for better audio performance
-    rtkit.enable = true;
-    
     pam = {
       services = {
         login = {
@@ -787,6 +760,4 @@
       ln -sf ${pkgs.bash}/bin/bash /bin/bash
     '';
   };
-
-
 }
