@@ -17,6 +17,7 @@
     "usbcore.old_scheme_first=1" # Try old USB enumeration first
     "amd_iommu=on"               # Ensures PCIe hotplug/IOMMU plays nicely with TB tunnels
     "iommu=pt"                   # Pass-through mode for IOMMU
+    "pci=realloc"                # Fix PCI resource allocation failures on this hardware
   ];
 
   boot.kernelModules = [ 
@@ -27,11 +28,16 @@
     "usb_storage"       # USB storage support
     "snd_pci_ps"        # Sound support for AMD/Intel HDA
     "uinput"            # Input device module for Dell laptop features
+    "thunderbolt"       # Thunderbolt module for proper device management
   ];
 
   # List packages for Dell-specific hardware support
   environment.systemPackages = with pkgs; [
     nvidia-container-toolkit
+    lm_sensors        # Temperature monitoring
+    usbutils          # USB debugging tools  
+    pciutils          # PCI debugging tools
+    bolt              # Thunderbolt device management CLI
   ];
 
   hardware = {
