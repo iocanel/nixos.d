@@ -121,6 +121,14 @@
     blueman = {
       enable = true;
     };
+    clamav = {
+      daemon = {
+        enable = false;
+      };
+      updater = {
+        enable = true;
+      };
+    };
     dbus = {
       enable = true;
       packages = [ pkgs.gamemode ];
