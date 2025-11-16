@@ -692,6 +692,18 @@
           };          
         };
         swaylock = {
+          gnupg = {
+            enable = true;
+            noAutostart = false;
+            storeOnly = false;
+          };
+        };
+        greetd = {
+          gnupg = {
+            enable = true;
+            noAutostart = false;
+            storeOnly = false;
+          };
         };
       };
     };
