@@ -2,6 +2,33 @@
 { config, lib, pkgs, ... }:
 
 {
+  # Encrypted devices - crypthome will be handled by systemd unit
+  environment.etc."crypttab".text = ''
+  '';
+  
+  # Ensure cryptsetup is available
+  systemd.services.systemd-cryptsetup = {
+    path = [ pkgs.cryptsetup ];
+  };
+  
+  # Service to unlock crypthome when key becomes available
+  systemd.services.crypthome-unlock = {
+    description = "Unlock crypthome when key is available";
+    after = [ "local-fs.target" ];
+    wantedBy = [ "multi-user.target" ];
+    path = with pkgs; [ cryptsetup ];
+    script = ''
+      if [ -f /root/home.key ] && [ -e /dev/disk/by-label/HOME ]; then
+        if ! [ -e /dev/mapper/crypthome ]; then
+          cryptsetup luksOpen /dev/disk/by-label/HOME crypthome --key-file /root/home.key
+        fi
+      fi
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+  };
   fileSystems."/" =
   { 
       device = "/dev/mapper/cryptroot";
@@ -10,8 +37,9 @@
 
   fileSystems."/home" =
   { 
-      device = "/dev/disk/by-uuid/4882f657-3753-4e28-bd2e-25d259cdff4f";
+      device = "/dev/mapper/crypthome";
       fsType = "ext4";
+      options = [ "nofail" "defaults" ];
   };
 
   fileSystems."/boot" =
