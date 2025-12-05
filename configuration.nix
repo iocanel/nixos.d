@@ -222,7 +222,7 @@
     };
 
     resolved = {
-      enable = false;
+      enable = true;
     };
     
     udisks2 = {
@@ -614,6 +614,9 @@
         6881 # DELUGE
         6891 # DELUGE
       ];
+    };
+    resolvconf = {
+      enable = false;
     };
   };
 
