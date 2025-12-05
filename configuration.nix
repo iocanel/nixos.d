@@ -67,7 +67,7 @@
   boot.loader.grub.efiSupport = true;
   boot.loader.grub.useOSProber = true;
   boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 5;
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.initrd.luks.devices = {
     "cryptroot" = {      
       device = "/dev/disk/by-uuid/2205cc86-d099-4cc7-8899-143f4ea6a222";
