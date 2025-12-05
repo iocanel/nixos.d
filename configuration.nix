@@ -627,7 +627,7 @@
   swapDevices = [
     {
       device = "/swapfile";
-      size = 8192; # 8GB swap file
+      size = 32768; # 32GB swap file
     }
   ];
 
