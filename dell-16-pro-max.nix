@@ -116,7 +116,9 @@
     udev = {
       extraRules = ''
         # USB device rules for better dock/hub support
-        SUBSYSTEM=="usb", ATTR{power/autosuspend}="-1"
+        # CRITICAL REQUIREMENT: Laptop must work with Thunderbolt USB hub disconnected/reconnected 
+        # or connected after boot. Never break this functionality.
+        SUBSYSTEM=="usb", TEST=="power/autosuspend", ATTR{power/autosuspend}="-1"
         SUBSYSTEM=="usb", TEST=="power/control", ATTR{power/control}="on"
         
         # Input device rules
