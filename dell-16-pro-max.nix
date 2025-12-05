@@ -10,6 +10,9 @@
     "spec_store_bypass_disable=on"
     "l1tf=full,force"
     
+    # Prevent random freezes
+    "processor.max_cstate=1"
+    
     # USB optimizations for docks/hubs
     "usbcore.autosuspend=-1"     # Disable USB autosuspend globally
     "usb-storage.delay_use=0"    # Reduce USB storage detection delay
