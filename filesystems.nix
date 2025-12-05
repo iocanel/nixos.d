@@ -46,7 +46,7 @@
   { 
       device = "/dev/disk/by-uuid/BA0E-5F22";
       fsType = "vfat";
-      options = [ "fmask=0022" "dmask=0022" ];
+      options = [ "fmask=0077" "dmask=0077" ];
   };
   
   fileSystems."/mnt/usb" =
@@ -54,6 +54,21 @@
       device = "/dev/sda1";
       fsType = "vfat";
       options = [ "nofail" "user" "rw" "uid=1000" "gid=100" "umask=0002" ];
+  };
+
+
+  fileSystems."/mnt/media" = 
+  {
+    device = "192.168.1.250:/volume2/media";
+    fsType = "nfs";
+    options = [ "nofail" "bg" ];
+  };
+
+  fileSystems."/mnt/downloads" = 
+  {
+    device = "192.168.1.250:/volume2/downloads";
+    fsType = "nfs";
+    options = [ "nofail" "bg" ];
   };
 
   fileSystems."/mnt/bjj" = 
