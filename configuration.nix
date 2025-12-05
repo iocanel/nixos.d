@@ -639,8 +639,40 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.05";
 
-  # Don’t rebuild an immutable man-db cache on every nixos-rebuild
+  # Don't rebuild an immutable man-db cache on every nixos-rebuild
   documentation.man.generateCaches = false;
+
+  # Configure nscd for proper DNS caching
+  services.nscd = {
+    enable = true;
+    config = ''
+      server-user             nscd
+
+      enable-cache            passwd          yes
+      positive-time-to-live   passwd          600
+      negative-time-to-live   passwd          20
+      shared                  passwd          yes
+      max-db-size             passwd          33554432
+
+      enable-cache            group           yes
+      positive-time-to-live   group           3600
+      negative-time-to-live   group           60
+      shared                  group           yes
+      max-db-size             group           33554432
+
+      enable-cache            hosts           yes
+      positive-time-to-live   hosts           3600
+      negative-time-to-live   hosts           20
+      shared                  hosts           yes
+      max-db-size             hosts           33554432
+
+      enable-cache            services        yes
+      positive-time-to-live   services        28800
+      negative-time-to-live   services        20
+      shared                  services        yes
+      max-db-size             services        33554432
+    '';
+  };
 
   systemd = {
     services.systemd-networkd-wait-online.enable = lib.mkForce false;
