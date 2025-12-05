@@ -252,6 +252,7 @@
 
     ollama = {
       enable = true;
+      package = unstable.ollama;
       acceleration = "cuda";  # Use CUDA acceleration for your NVIDIA GPU
       environmentVariables = {
         OLLAMA_HOST = "127.0.0.1:11434";
