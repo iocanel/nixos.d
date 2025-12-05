@@ -75,6 +75,26 @@
     };
   };
 
+  # Include modules for Thunderbolt and USB support in initramfs
+  boot.initrd.availableKernelModules = [
+    # USB support
+    "xhci_pci" "xhci_hcd" "ehci_pci" "uhci_hcd" "ohci_pci"
+    # Thunderbolt support
+    "thunderbolt" "usb_storage" "typec_thunderbolt"
+    # USB HID (keyboard/mouse)
+    "usbhid" "hid_generic" "hid" "hid_logitech_hidpp"
+    # Additional USB/Thunderbolt modules
+    "typec" "btusb"
+  ];
+
+  boot.initrd.kernelModules = [
+    "xhci_pci"         # USB3 host where your dock is most likely hanging
+    "thunderbolt"      # bring up TB early
+    "usbhid"           # generic USB HID
+    "hid_generic"      # generic HID
+    # add your keyboard-specific HID module here once you know it (see next section)
+  ];
+
   # Use kernel 6.17
   boot.kernelPackages = pkgs.linuxPackages_6_17;
 
