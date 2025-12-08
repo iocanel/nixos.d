@@ -56,6 +56,7 @@
     [
       ./hardware-configuration.nix
       ./modules/superdrive.nix
+      ./modules/cybersecurity.nix
       ./private/index.nix
       <home-manager/nixos>
     ];
@@ -674,6 +675,10 @@
     '';
   };
 
+  # Cybersecurity tools
+  cybersecurity = {
+    enable = true;
+  };
   systemd = {
     services.systemd-networkd-wait-online.enable = lib.mkForce false;
     mounts = [
