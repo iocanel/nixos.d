@@ -287,7 +287,7 @@
       iocanel = {
         isNormalUser = true;
         description = "Ioannis Canellos";
-        extraGroups = [ "root" "wheel" "users" "iocanel" "audio" "video" "adbusers" "docker" "www-data" "networkmanager" "disk" "transmission" "deluge" "input" "fuse" "kvm" "libvirt" "podman" ];
+        extraGroups = [ "root" "wheel" "users" "iocanel" "audio" "video" "adbusers" "docker" "www-data" "networkmanager" "disk" "transmission" "deluge" "input" "fuse" "kvm" "libvirt" "podman" "cybersec" "wireshark" "vboxusers" ];
         linger = true;
       };
     };
@@ -589,6 +589,13 @@
       dockerCompat = false; # Keep false to avoid conflicts with Docker
       # Default network settings
       defaultNetwork.settings.dns_enabled = true;
+    };
+    
+    virtualbox = {
+      host = {
+        enable = true;
+        enableExtensionPack = true;
+      };
     };
     
     oci-containers = {
