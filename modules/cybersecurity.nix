@@ -11,19 +11,35 @@ with lib;
     environment.systemPackages = with pkgs; [
       # Network Security & Analysis
       nmap
+      smap # Drop-in replacement for nmap powered by shodan.io
       masscan
       rustscan
       wireshark
       tcpdump
+      binwalk
       netcat
+      netcat-gnu
       socat
       proxychains
+      
+      # Vulnerability Assessment
+      nuclei
       
       # WiFi Security Testing
       aircrack-ng
       kismet
       
       # Web Security
+      (symlinkJoin {
+        name = "burpsuite-wrapped";
+        paths = [ burpsuite ];
+        buildInputs = [ makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/burpsuite \
+            --set _JAVA_AWT_WM_NONREPARENTING 1 \
+            --set GDK_BACKEND x11
+        '';
+      })
       sqlmap
       nikto
       
@@ -32,6 +48,7 @@ with lib;
       hashcat
       thc-hydra
       medusa
+      ncrack
       cewl
       # Wordlists & Security Testing Lists
       wordlists
@@ -45,10 +62,53 @@ with lib;
       amass
       waybackurls
       gau
-      
-      # Metasploit Framework
+      uncover
+           
+      # Exploitation & Post-Exploitation
+      # Metasploit Framework (with gem extensions fixed via overlay)
       metasploit
+      # dependencies
+      ruby
+      gem
+      bundler
+      rubyPackages.racc
+      rubyPackages.rbs
+      #
+
       armitage
+      weevely
+      python312Packages.impacket
+      
+      # Container Security Testing
+      (pkgs.stdenv.mkDerivation rec {
+        pname = "deepce";
+        version = "2024-12-18";
+        
+        src = pkgs.fetchurl {
+          url = "https://github.com/stealthcopter/deepce/raw/main/deepce.sh";
+          sha256 = "1q449pj2nfrbw78p4hwvv3bj69243z2lxjji53xip8lki87ra978";
+        };
+        
+        dontUnpack = true;
+        dontBuild = true;
+        
+        installPhase = ''
+          mkdir -p $out/bin
+          cp $src $out/bin/deepce
+          chmod +x $out/bin/deepce
+        '';
+        
+        meta = with pkgs.lib; {
+          description = "Docker Enumeration, Escalation of Privileges and Container Escapes";
+          homepage = "https://github.com/stealthcopter/deepce";
+          license = licenses.mit;
+          platforms = platforms.linux;
+          maintainers = [ ];
+        };
+      })
+      
+      # Credential Extraction & Windows Security Testing
+      mimikatz # Windows credential extraction and WDigest vulnerability demonstration
             
       # Utilities
       exif
