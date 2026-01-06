@@ -74,8 +74,10 @@
     [
       ./hardware-configuration.nix
       ./modules/superdrive.nix
+      ./modules/monitor-hotplug.nix
       ./cybersecurity/system.nix
       ./modules/work-mode.nix
+      ./modules/display-manager.nix
       ./private/index.nix
       <home-manager/nixos>
     ];
@@ -142,6 +144,12 @@
   # Set your time zone.
   time.timeZone = "Europe/Athens";
 
+  # Display manager configuration - switch between wayland/xorg
+  custom.display-manager = {
+    enable = true;
+    backend = "wayland";  # Change this to "wayland" or "xorg"
+  };
+
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
@@ -172,54 +180,6 @@
     dbus = {
       enable = true;
       packages = [ pkgs.gamemode ];
-    };
-    
-    displayManager = {
-    };
-    
-    greetd = {
-      enable = true;
-      settings = {
-        # Greeter UI that prompts for your username/password, then launches a session
-        default_session = {
-          command = "${pkgs.greetd.tuigreet}/bin/tuigreet --remember --time --cmd ${pkgs.swayfx}/bin/sway";
-          user = "greeter";
-        };
-      };
-    };
-
-    # Configure keymap in X11
-    xserver = {
-      enable = false;
-      desktopManager = {
-        xterm.enable = true;
-      };
-      windowManager = {
-        i3 = {
-          enable = false;
-          extraPackages = with pkgs; [
-            dmenu
-	          rofi
-	          i3lock
-	          i3blocks
-          ];
-        };
-      };
-      displayManager = {
-    	  gdm = {
-          enable = false;
-        };
-      };
-      desktopManager = {
-        gnome = {
-          enable = false;
-        };
-      };
-      xkb = {
-        variant = "";
-        options = "grp:alt_shift_toggle";
-        layout = "us,gr";
-      };
     };
     
     pulseaudio = {
@@ -794,15 +754,8 @@
     DOCKER_BUILDKIT = 1;  # Globally enable BuildKit
   };
   
-   environment.sessionVariables = {
-     XDG_CURRENT_DESKTOP = "sway";
-     XDG_SESSION_DESKTOP = "sway";
-     MOZ_ENABLE_WAYLAND = "1";
-     QT_QPA_PLATFORM = "wayland";
-     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-     SDL_VIDEODRIVER = "wayland";
-     NIXOS_OZONE_WL = "1";  # Chromium/Electron
-   };
+   # Environment variables moved to display modules
+  # Set via custom.display-manager.backend
 
 
   environment.etc."udev/scripts/deauth-usb.sh" = {

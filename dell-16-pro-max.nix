@@ -18,7 +18,7 @@
     "usb-storage.delay_use=0"    # Reduce USB storage detection delay
     "usbhid.mousepoll=1"         # Increase mouse polling rate
     "usbcore.old_scheme_first=1" # Try old USB enumeration first
-    "amd_iommu=on"               # Ensures PCIe hotplug/IOMMU plays nicely with TB tunnels
+    # "amd_iommu=on"               # Disabled - using NVIDIA only
     "iommu=pt"                   # Pass-through mode for IOMMU
     "pci=realloc"                # Fix PCI resource allocation failures on this hardware
   ];
@@ -49,23 +49,13 @@
       package = config.boot.kernelPackages.nvidiaPackages.stable;
       modesetting.enable = true;
       
-      # Enable PRIME for hybrid graphics (NVIDIA + AMD)
-      prime = {
-        # Bus IDs from lspci output
-        nvidiaBusId = "PCI:198:0:0";  # c6:00.0 in hex = 198:0:0 in decimal
-        amdgpuBusId = "PCI:199:0:0";  # c7:00.0 in hex = 199:0:0 in decimal
-        
-        # Enable offload mode for better battery life
-        offload = {
-          enable = true;
-          enableOffloadCmd = true;
-        };
-      };
+      # Disable AMD GPU - use NVIDIA only
+      # prime disabled for pure NVIDIA mode
       
-      # Power management for laptops
+      # Power management for laptops (finegrained disabled - requires PRIME offload)
       powerManagement = {
         enable = true;
-        finegrained = true;
+        finegrained = false;
       };
       
       # Use open source kernel modules (recommended for newer cards)
@@ -84,8 +74,8 @@
     # Enable advanced CPU features
     enableRedistributableFirmware = true;
     
-    # AMD GPU driver support - disabled for pure offload mode
-    # amdgpu.amdvlk.enable = true;
+    # AMD GPU completely disabled
+    # amdgpu.amdvlk.enable = false;
     
     # Graphics support (replaces opengl in NixOS 24.05+)
     graphics = {
