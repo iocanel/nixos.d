@@ -26,6 +26,18 @@
 
 { config, pkgs, lib, fetchFromGithub, ... }:
   let
+    # Import nixpkgs 25.11 stable
+    nixpkgs-25-11 = import (builtins.fetchTarball { 
+      url = "https://github.com/NixOS/nixpkgs/archive/nixos-25.11.tar.gz"; 
+    }) { 
+      config = { 
+        allowUnfree = true; 
+        permittedInsecurePackages = [
+          "dotnet-sdk-6.0.428"
+        ];
+      }; 
+    };
+    
     #
     # Define the paths to your custom packages
     #
@@ -46,12 +58,18 @@
       config = { allowUnfree = true; };
     };
     
-  #  home-manager = import (builtins.fetchTarball { url = "https://github.com/nix-community/home-manager/archive/master.tar.gz"; }) {
+  #  home-manager = import (builtins.fetchTarball { url = "https://github.com/nix-community/home-manager/archive/release-25.11.tar.gz"; }) {
   #    inherit (unstable) pkgs;
   #    config = { allowUnfree = true; };
   #  };
   in
 {
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+     "dotnet-sdk-6.0.428"
+  ];
+  
   imports =
     [
       ./hardware-configuration.nix
@@ -98,7 +116,7 @@
   ];
 
   # Use kernel 6.17
-  boot.kernelPackages = pkgs.linuxPackages_6_17;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
@@ -161,7 +179,6 @@
     
     greetd = {
       enable = true;
-      vt = 7;
       settings = {
         # Greeter UI that prompts for your username/password, then launches a session
         default_session = {
@@ -316,11 +333,6 @@
     users.iocanel = /home/iocanel/.config/home-manager/home.nix;
   };
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.permittedInsecurePackages = [
-     "dotnet-sdk-6.0.428"
-  ];
 
   # Experimental features
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
