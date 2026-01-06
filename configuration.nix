@@ -56,7 +56,7 @@
     [
       ./hardware-configuration.nix
       ./modules/superdrive.nix
-      ./modules/cybersecurity.nix
+      ./cybersecurity/system.nix
       ./modules/work-mode.nix
       ./private/index.nix
       <home-manager/nixos>
