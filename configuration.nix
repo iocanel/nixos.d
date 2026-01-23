@@ -324,7 +324,6 @@
      linux-firmware     # Additional firmware support
      # Android
      android-tools
-     android-udev-rules
      #
      # AI
      #
@@ -367,7 +366,6 @@
      libtool
      # Java
      temurin-bin-21
-     temurin-bin-23
      maven
      gradle
      jbang
@@ -461,12 +459,6 @@
      #Virtualization
      qemu
      qemu_kvm
-
-     # Wayland/Sway desktop bits
-     swayfx swaybg swayidle swaylock-effects waybar wofi wofi-pass
-     wl-clipboard clipman
-     grim slurp swappy wf-recorder
-     mako kanshi brightnessctl
   ];
 
   fonts.packages = with pkgs; [
