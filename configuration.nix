@@ -271,24 +271,6 @@
     };
   };
 
-  xdg = {
-    portal = {
-      enable = true;
-      extraPortals = [
-        pkgs.xdg-desktop-portal-wlr
-        pkgs.xdg-desktop-portal-gtk
-      ];
-      config = {
-        common = {
-          # single string, not a list
-          default = "wlr";
-          # explicitly use GTK for file chooser dialogs
-          "org.freedesktop.impl.portal.FileChooser" = "gtk";
-        };
-      };
-    };
-  };
- 
   home-manager = {
     users.iocanel = /home/iocanel/.config/home-manager/home.nix;
   };
@@ -500,16 +482,7 @@
     java = {
       enable = true;
     };
-    
-    xwayland = {
-      enable = true;
-    };
-    
-    sway = {
-      enable = true;
-      package = pkgs.swayfx;
-    };
-    
+
     ydotool = {
       enable = false;
       group = "input";
@@ -722,13 +695,6 @@
             enable = true;
             noAutostart = true;
             storeOnly = true;
-          };          
-        };
-        swaylock = {
-          gnupg = {
-            enable = true;
-            noAutostart = false;
-            storeOnly = false;
           };
         };
         greetd = {
