@@ -5,10 +5,21 @@
 
 set -e
 
+# Parse arguments
+INSTALL_BOOTLOADER=false
+if [[ "$1" == "--boot" ]]; then
+  INSTALL_BOOTLOADER=true
+fi
+
 echo "Copying configuration from ~/.nixos to /etc/nixos..."
 sudo rsync -av --delete --exclude='.git/' --exclude='**/.git/' /home/iocanel/.nixos/ /etc/nixos/
 
 echo "Running nixos-rebuild switch..."
 sudo nixos-rebuild switch
+
+if [ "$INSTALL_BOOTLOADER" = true ]; then
+  echo "Installing bootloader..."
+  sudo nixos-rebuild --install-bootloader boot
+fi
 
 echo "Configuration applied successfully!"
