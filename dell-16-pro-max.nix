@@ -4,17 +4,11 @@
 {
   # CPU-specific optimizations for AMD Ryzen AI 7 PRO 350 (Zen 5)
   boot.kernelParams = [
-    # Enable AMD P-State for better power management
-    "amd_pstate=active"
-    # Enable enhanced security features
-    "spec_store_bypass_disable=on"
-    "l1tf=full,force"
-    
+    "amdgpu.sg_display=0"        # Disable AMD Scatter-Gather display
     # Prevent random freezes
     "processor.max_cstate=1"
     
     # USB optimizations for docks/hubs
-    "usbcore.autosuspend=-1"     # Disable USB autosuspend globally
     "usb-storage.delay_use=0"    # Reduce USB storage detection delay
     "usbhid.mousepoll=1"         # Increase mouse polling rate
     "usbcore.old_scheme_first=1" # Try old USB enumeration first
@@ -49,13 +43,23 @@
       package = config.boot.kernelPackages.nvidiaPackages.stable;
       modesetting.enable = true;
       
-      # Disable AMD GPU - use NVIDIA only
-      # prime disabled for pure NVIDIA mode
+      # Enable PRIME for hybrid graphics (NVIDIA + AMD)
+      prime = {
+        # Bus IDs from lspci output
+        nvidiaBusId = "PCI:198:0:0";  # c6:00.0 in hex = 198:0:0 in decimal
+        amdgpuBusId = "PCI:199:0:0";  # c7:00.0 in hex = 199:0:0 in decimal
+        
+        # Enable offload mode for better battery life
+        offload = {
+          enable = true;
+          enableOffloadCmd = true;
+        };
+      };
       
-      # Power management for laptops (finegrained disabled - requires PRIME offload)
+      # Power management for laptops
       powerManagement = {
         enable = true;
-        finegrained = false;
+        finegrained = true;
       };
       
       # Use open source kernel modules (recommended for newer cards)
