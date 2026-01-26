@@ -2,57 +2,44 @@
 
 with lib;
 
+let
+  cfg = config.custom.display.wayland;
+in
 {
+  imports = [
+    ./wayland-common.nix
+    ./sway.nix
+    ./hyprland.nix
+  ];
+
   options.custom.display.wayland = {
-    enable = mkEnableOption "Enable Wayland/Sway configuration";
+    enable = mkEnableOption "Enable Wayland configuration";
   };
 
-  config = mkIf config.custom.display.wayland.enable {
-    # Wayland/Sway configuration
-    services = {
-      greetd = {
-        enable = true;
-        vt = 7;
-        settings = {
-          default_session = {
-            command = "${pkgs.greetd.tuigreet}/bin/tuigreet --remember --time --cmd ${pkgs.swayfx}/bin/sway";
-            user = "greeter";
-          };
+  config = mkIf cfg.enable {
+    # Enable both Sway and Hyprland
+    custom.display.sway.enable = true;
+    custom.display.hyprland.enable = true;
+
+    # Configure greetd for session selection
+    services.greetd = {
+      enable = true;
+      settings = {
+        default_session = {
+          # tuigreet will discover sessions from /run/current-system/sw/share/wayland-sessions
+          command = "${pkgs.tuigreet}/bin/tuigreet --remember --time --sessions /run/current-system/sw/share/wayland-sessions";
+          user = "greeter";
         };
       };
-      
-      # Disable X11 services
-      xserver.enable = false;
     };
 
-    # Wayland-specific packages
-    environment.systemPackages = with pkgs; [
-      swayfx
-      swaylock
-      swayidle
-      wl-clipboard
-      mako
-      wofi
-      waybar
-      grim
-      slurp
-      wf-recorder
-    ];
-
-    # XWayland support
-    programs.xwayland = {
-      enable = true;
-    };
-
-    # Environment variables for Wayland
-    environment.sessionVariables = {
-      QT_QPA_PLATFORM = "wayland";
-      GDK_BACKEND = "wayland";
-      SDL_VIDEODRIVER = "wayland";
-      MOZ_ENABLE_WAYLAND = "1";
-      NIXOS_OZONE_WL = "1";
-      XDG_CURRENT_DESKTOP = "sway";
-      XDG_SESSION_DESKTOP = "sway";
+    # PAM configuration for greetd
+    security.pam.services.greetd = {
+      gnupg = {
+        enable = true;
+        noAutostart = false;
+        storeOnly = false;
+      };
     };
   };
 }
