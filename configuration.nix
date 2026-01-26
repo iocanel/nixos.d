@@ -688,6 +688,9 @@
   };
 
   security = {
+    sudo = {
+      wheelNeedsPassword = false;
+    };
     pam = {
       services = {
         login = {
